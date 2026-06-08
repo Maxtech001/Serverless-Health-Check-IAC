@@ -17,7 +17,6 @@ variable "project_name" {
   description = "Project name"
   default     = "health-check"
 }
-
 # Location of the packaged Lambda ZIP file used during deployment
 variable "lambda_zip_path" {
   type        = string
