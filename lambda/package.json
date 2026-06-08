@@ -1,0 +1,10 @@
+{
+  "name": "health-check-lambda",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "commonjs",
+  "dependencies": {
+    "aws-sdk": "^2.1693.0"
+  }
+}
+
