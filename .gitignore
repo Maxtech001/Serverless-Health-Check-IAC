@@ -1,11 +1,9 @@
 # Terraform
 terraform/.terraform/
 *.tfstate
-*.tfstate.*
+*.tfstate.backup
 crash.log
-
 # zip artifacts
 *.zip
-
 # node modules
 node_modules/

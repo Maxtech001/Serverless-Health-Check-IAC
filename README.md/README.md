@@ -61,7 +61,7 @@ Required for CI/CD deployment:
 
 DEPLOYMENT (GITHUB ACTIONS)
 
-1. Push code to main branch → CI runs automatically
+1. Push code to master branch → CI runs automatically
 2. Or manually trigger workflow → choose staging/prod
 3. Terraform deploys full infrastructure
 
@@ -78,8 +78,10 @@ cd ..
 Step 2: Deploy with Terraform
 cd terraform
 terraform init
-terraform plan -var-file="../envs/staging.tfvars"
-terraform apply -var-file="../envs/staging.tfvars" -auto-approve
+terraform fmt
+terraform validate
+terraform plan
+terraform apply
 
 ---
 
@@ -89,11 +91,12 @@ After deployment, get API URL:
 terraform output api_url
 
 Test with curl:
+bash:
 curl -X POST "$(terraform output -raw api_url)" \
   -H "Content-Type: application/json" \
   -d '{"payload":"ping"}'
 
-TESTING LAMBDA FROM THE AWS CONSOLE
+TESTING via LAMBDA AWS CONSOLE
 
 {
   "body": "{\"payload\":\"health-check-test\"}"
