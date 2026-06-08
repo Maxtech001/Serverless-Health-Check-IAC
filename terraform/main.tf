@@ -16,7 +16,6 @@ terraform {
   }
 
 }
-
 # Configure AWS provider and deployment region
 provider "aws" {
   region = var.aws_region
@@ -192,3 +191,4 @@ resource "aws_api_gateway_method_settings" "all" {
     throttling_rate_limit  = 100
   }
 }
+
