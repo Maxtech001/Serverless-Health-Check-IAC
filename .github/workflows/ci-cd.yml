@@ -107,5 +107,3 @@ jobs:
       - name: Terraform apply
         working-directory: ./terraform
         run: terraform apply -auto-approve -var-file="envs/${{ env.ENVIRONMENT }}.tfvars"
-
-        
