@@ -8,11 +8,11 @@ terraform {
     }
   }
 
- backend "s3" {
-    bucket         = "stateless-health-check-api1"
-    key            = "health-check/terraform.tfstate"
-    region         = "eu-north-1"
-    encrypt        = true
+  backend "s3" {
+    bucket  = "stateless-health-check-api1"
+    key     = "health-check/terraform.tfstate"
+    region  = "eu-north-1"
+    encrypt = true
   }
 
 }
