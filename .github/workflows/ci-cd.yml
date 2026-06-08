@@ -1,5 +1,5 @@
 name: CI-CD
-
+# Trigger workflow automatically on pushes to master
 on:
   push:
     branches:
@@ -13,24 +13,32 @@ on:
         default: "staging"
 
 jobs:
+
+  # Continuous Integration Job
+  # Validates code, packages Lambda, and performs security checks.
   ci:
     runs-on: ubuntu-latest
 
     steps:
+
+      # Downloads repository source code into the GitHub runner.
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Installs Node.js runtime required for Lambda dependency management.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
 
-      # ✅ FIX: ensures node_modules is properly created in CI
+      # Installs Lambda dependencies from package-lock.json.
+      # npm ci provides faster and reproducible builds.
       - name: Install Lambda dependencies
         working-directory: ./lambda
         run: npm ci
 
-      # ✅ FIX: proper packaging INCLUDING node_modules
+      # Creates deployment package for AWS Lambda.
+      # Includes source code and required dependencies while excluding cache files.
       - name: Package Lambda
         run: |
           cd lambda
@@ -38,53 +46,73 @@ jobs:
             -x "node_modules/.cache/*" \
             -x "*.git*"
 
+      # Stores the generated Lambda ZIP as a workflow artifact
+      # so it can be used by the deployment stage.
       - name: Upload Lambda artifact
         uses: actions/upload-artifact@v4
         with:
           name: lambda-package
           path: health-check-lambda.zip
 
+      # Installs Terraform CLI on the GitHub runner.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
+      # Verifies Terraform code formatting follows best practices.
+      # Workflow fails if formatting is incorrect.
       - name: Terraform fmt
         working-directory: ./terraform
         run: terraform fmt -check -recursive
 
+      # Initializes Terraform providers without connecting to remote backend.
+      # Used only for validation during CI.
       - name: Terraform init (validation only)
         working-directory: ./terraform
         run: terraform init -backend=false
 
+      # Validates Terraform syntax and configuration.
       - name: Terraform validate
         working-directory: ./terraform
         run: terraform validate
 
+      # Performs static security analysis on Terraform code.
+      # soft_fail allows warnings without blocking deployment.
       - name: tfsec scan
         uses: aquasecurity/tfsec-action@v1.0.0
         with:
           working_directory: ./terraform
           soft_fail: true
 
-
+  # Continuous Deployment Job
+  # Deploys infrastructure and application to AWS after CI succeeds.
   deploy:
     needs: ci
     runs-on: ubuntu-latest
 
+    # Deploy automatically on pushes to master
+    # or when manually triggered.
     if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
 
     env:
+      # AWS deployment region.
       AWS_REGION: eu-north-1
+
+      # Deployment environment selected manually or defaults to staging.
       ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
 
     steps:
+
+      # Downloads repository source code.
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      # Retrieves Lambda deployment package created during CI.
       - name: Download Lambda artifact
         uses: actions/download-artifact@v4
         with:
           name: lambda-package
 
+      # Authenticates GitHub Actions with AWS using stored secrets.
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -92,18 +120,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # Installs Terraform CLI for deployment operations.
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      # ✅ FIX: proper backend handling
+      # Initializes Terraform and connects to remote state backend.
+      # -reconfigure ensures backend configuration is refreshed.
       - name: Terraform init (with backend)
         working-directory: ./terraform
         run: terraform init -reconfigure
 
+      # Generates an execution plan showing infrastructure changes
+      # before deployment.
       - name: Terraform plan
         working-directory: ./terraform
         run: terraform plan -var-file="envs/${{ env.ENVIRONMENT }}.tfvars"
 
+      # Applies infrastructure changes automatically without
+      # requiring manual approval.
       - name: Terraform apply
         working-directory: ./terraform
         run: terraform apply -auto-approve -var-file="envs/${{ env.ENVIRONMENT }}.tfvars"
+

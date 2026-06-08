@@ -93,6 +93,12 @@ curl -X POST "$(terraform output -raw api_url)" \
   -H "Content-Type: application/json" \
   -d '{"payload":"ping"}'
 
+TESTING LAMBDA FROM THE AWS CONSOLE
+
+{
+  "body": "{\"payload\":\"health-check-test\"}"
+}
+
 ---
 
 EXPECTED RESPONSE
