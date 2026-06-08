@@ -179,7 +179,6 @@ resource "aws_api_gateway_stage" "api_stage" {
   deployment_id = aws_api_gateway_deployment.api.id
 
 }
-
 # Configure API Gateway throttling to reduce abuse and DDoS impact
 resource "aws_api_gateway_method_settings" "all" {
   rest_api_id = aws_api_gateway_rest_api.api.id
