@@ -191,4 +191,3 @@ resource "aws_api_gateway_method_settings" "all" {
     throttling_rate_limit  = 100
   }
 }
-
