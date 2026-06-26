@@ -7,7 +7,6 @@ terraform {
       version = "~> 5.0"
     }
   }
-
   backend "s3" {
     bucket  = "stateless-health-check-api1"
     key     = "health-check/terraform.tfstate"
